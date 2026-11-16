@@ -548,7 +548,7 @@
     ]
   },
   "currentRefresh": {
-    "sourceFile": "..\\..\\refresh-source.json.gz",
+    "sourceFile": "../../refresh-source.json.gz",
     "financialAsOf": "20261116",
     "universeAsOf": "20261116",
     "companyQuoteAsOf": "20261113",

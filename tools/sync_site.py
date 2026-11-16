@@ -21,7 +21,9 @@ def main():
         sys.exit('请在独立仓库 main 分支发布。')
     if git('status', '--porcelain', capture=True).strip():
         sys.exit('请先提交本仓库修改，再发布。')
-    if git('remote', 'get-url', 'origin', capture=True).strip().removesuffix('.git') != REMOTE.removesuffix('.git'):
+    origin=git('remote', 'get-url', 'origin', capture=True).strip().removesuffix('.git')
+    allowed={REMOTE.removesuffix('.git'),'git@github.com:leejiazhi88-gif/2.2-quanlantu','ssh://git@github.com/leejiazhi88-gif/2.2-quanlantu'}
+    if origin not in allowed:
         sys.exit('origin 不是全览图独立仓库，停止发布。')
     for check in ['validate_sw_data.py', 'check_freshness.py']:
         subprocess.run([sys.executable, str(SITE/'tools'/check)], check=True)
