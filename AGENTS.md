@@ -4,4 +4,4 @@
 - 数据刷新统一运行 `python3 tools/refresh_data.py`；不能只改更新日期、只更新行情或沿用已披露公司的估算。缺少新季度或新公司历史时停止并补齐后再发。
 - 提速优先批量申万行情、有界并发和输入/构建代码均未变化时跳过生成，仍须重新联网核查与完整校验。任何查询失败、截断未补齐、实际披露仍估算、核查过期或哈希不匹配都不得发布。
 - 运行 `python3 tools/validate_sw_data.py` 与 `python3 tools/check_freshness.py`；界面变化补做浏览器检查。保持默认10年、近4季、PE曲线隐藏、二级未选，最新报价不多计财务季度。
-- 原工作区只编辑work/deploy/sw-electronics，检查并合并独立副本用户修改。校验并提交相关文件后，工作区根运行 `python3 sync-site.py`，同步公开站点、独立仓库、本地副本及outputs。用户已授权每次更新持续同步，无须再询问；不force push、不带入其他项目或密钥。
+- 本仓库是全览图唯一维护与发布源，直接在本仓库编辑。校验并提交后运行 `python3 tools/sync_site.py`，仅推送本仓库 main；不得再向 1-BigA-total 同步全览图代码。旧站点仅保留跳转入口。不 force push，不带入其他项目或密钥。

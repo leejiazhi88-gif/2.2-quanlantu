@@ -1,48 +1,48 @@
 #!/usr/bin/env python3
-"""Publish committed 全览图 changes to both GitHub repositories and local mirrors."""
+"""Publish the independent quanlantu repository; never write to the legacy site."""
+import argparse
 from pathlib import Path
-import os
 import shutil
 import subprocess
 import sys
 
-workspace = next((parent for parent in Path(__file__).resolve().parents
-                  if (parent / 'work/deploy/sw-electronics').is_dir()), None)
-if workspace is None:
-    sys.exit('请在全览图原工作区运行同步脚本；需存在 work/deploy/sw-electronics。')
-deploy = workspace / 'work/deploy'
-site = deploy / 'sw-electronics'
-checkout = Path(os.environ.get('QUANLANTU_CHECKOUT', str(workspace / 'work/quanlantu')))
-remote = 'https://github.com/leejiazhi88-gif/2.2-quanlantu.git'
+SITE = Path(__file__).resolve().parents[1]
+REMOTE = 'https://github.com/leejiazhi88-gif/2.2-quanlantu.git'
 
-def git(directory, *args, capture=False):
-    return subprocess.run(['git', '-C', str(directory), *args], check=True,
+def git(*args, capture=False):
+    return subprocess.run(['git', '-C', str(SITE), *args], check=True,
                           text=True, stdout=subprocess.PIPE if capture else None).stdout
 
-if git(deploy, 'branch', '--show-current', capture=True).strip() != 'main':
-    sys.exit('请先切换 work/deploy 到 main。')
-if git(deploy, 'status', '--porcelain', '--', 'sw-electronics', capture=True).strip():
-    sys.exit('请先校验并提交 sw-electronics 的修改，再运行同步。')
-if checkout.exists() and git(checkout, 'status', '--porcelain', capture=True).strip():
-    sys.exit('work/quanlantu 有未提交修改，请先合并到主编辑目录，避免覆盖。')
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output-dir', type=Path)
+    args = parser.parse_args()
+    if git('branch', '--show-current', capture=True).strip() != 'main':
+        sys.exit('请在独立仓库 main 分支发布。')
+    if git('status', '--porcelain', capture=True).strip():
+        sys.exit('请先提交本仓库修改，再发布。')
+    if git('remote', 'get-url', 'origin', capture=True).strip().removesuffix('.git') != REMOTE.removesuffix('.git'):
+        sys.exit('origin 不是全览图独立仓库，停止发布。')
+    for check in ['validate_sw_data.py', 'check_freshness.py']:
+        subprocess.run([sys.executable, str(SITE/'tools'/check)], check=True)
+    git('fetch', 'origin', 'main')
+    git('merge-base', '--is-ancestor', 'origin/main', 'HEAD')
+    git('push', 'origin', 'main')
+    commit = git('rev-parse', 'HEAD', capture=True).strip()
+    remote = git('ls-remote', 'origin', 'refs/heads/main', capture=True).split()[0]
+    if remote != commit:
+        sys.exit('远端已更新，请检查最新提交后重试。')
+    if args.output_dir:
+        output = args.output_dir.resolve()
+        if output == SITE or SITE in output.parents:
+            sys.exit('导出目录需放在仓库外。')
+        output.mkdir(parents=True, exist_ok=True)
+        target = output/'quanlantu-site'
+        shutil.copytree(SITE, target, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('.git', '__pycache__', '*.pyc'))
+        shutil.make_archive(str(output/'quanlantu-site'), 'zip', root_dir=output, base_dir='quanlantu-site')
+    print('独立仓库发布完成：' + commit)
+    print('https://leejiazhi88-gif.github.io/2.2-quanlantu/')
 
-# A static date label is not proof of fresh financials. Fail before either push.
-subprocess.run([sys.executable, str(site / 'tools/check_freshness.py')], check=True)
-
-git(deploy, 'push', 'origin', 'main')
-commit = git(deploy, 'subtree', 'split', '--prefix=sw-electronics', capture=True).strip()
-git(deploy, 'push', remote, commit + ':refs/heads/main')
-if checkout.exists():
-    git(checkout, 'pull', '--ff-only', 'origin', 'main')
-else:
-    subprocess.run(['git', 'clone', '--branch', 'main', remote, str(checkout)], check=True)
-source_tree = git(deploy, 'rev-parse', 'HEAD:sw-electronics', capture=True).strip()
-local_tree = git(checkout, 'rev-parse', 'HEAD^{tree}', capture=True).strip()
-remote_commit = git(checkout, 'ls-remote', 'origin', 'refs/heads/main', capture=True).split()[0]
-if local_tree != source_tree or remote_commit != commit:
-    sys.exit('同步校验失败，请检查本地与远端状态。')
-shutil.copytree(site, workspace / 'outputs/sw-electronics', dirs_exist_ok=True)
-shutil.make_archive(str(workspace / 'outputs/sw-electronics-site'), 'zip',
-                    root_dir=workspace / 'outputs', base_dir='sw-electronics')
-print('同步完成：原公开站点仓库、新全览图仓库、本地独立副本和交付文件。')
-print('全览图仓库提交：' + commit)
+if __name__ == '__main__':
+    main()

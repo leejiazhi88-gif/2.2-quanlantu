@@ -341,7 +341,7 @@ return api;
 const moduleTemplate=document.getElementById('industry-template');
 const industryList=document.getElementById('industry-list');
 const industryLoads=new Map();
-const assetVersion='touch-20261115';
+const assetVersion='refresh-202611160759310800';
 function loadIndustryJSON(path){return fetch(path+'?v='+assetVersion).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();});}
 function activateIndustry(root){
  const key=root.dataset.industry;if(industryLoads.has(key))return industryLoads.get(key);

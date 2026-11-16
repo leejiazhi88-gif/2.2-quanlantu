@@ -1,6 +1,8 @@
 # 2.2 全览图
 
-公开地址：https://leejiazhi88-gif.github.io/1-BigA-total/sw-electronics/
+公开地址：https://leejiazhi88-gif.github.io/2.2-quanlantu/
+
+旧地址保留跳转到独立站点，后续仅维护本仓库。
 
 独立仓库：https://github.com/leejiazhi88-gif/2.2-quanlantu
 
@@ -29,7 +31,7 @@
 
 freshness-audit.json记录当次核查日期、请求数、耗时、待披露状态和生成文件SHA256。refresh-source.json.gz保存公开参数、返回字段、响应及实际抓取时间，不含凭据。`python3 tools/check_freshness.py` 校验当天新查询、已披露不得估算、38133条近期公司财报差分、全部聚合、公司报价和文件哈希。缺失、过期或来源不匹配均阻止推送；不能仅修改页面更新日期。
 
-校验：`python3 tools/validate_sw_data.py`，可加 `--project2 PATH` 核对共同历史分位。发布前提交主目录内相关文件，在原工作区运行 `python3 sync-site.py`（项目内副本 tools/sync_site.py），同步旧公开站点、新独立仓库、本地独立副本和outputs/zip。禁止force push；远端和本地有用户改动时先合并。同步入口也执行新鲜度门禁。
+校验：`python3 tools/validate_sw_data.py`，可加 `--project2 PATH` 核对共同历史分位。发布前提交本仓库相关文件，运行 `python3 tools/sync_site.py`，仅推送独立仓库 main，由 GitHub Pages 从根目录发布。不再依赖旧工作区或双仓库同步。可用 `--output-dir PATH` 导出页面副本与 ZIP；禁止 force push，先合并远端更新。发布入口执行完整数据与新鲜度门禁。
 
 ## 移动端按需加载
 
